@@ -1,5 +1,3 @@
-import { getToken } from './auth';
-
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 if (!API_URL) {
@@ -7,16 +5,14 @@ if (!API_URL) {
 }
 
 async function adminFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const token = getToken();
-
   const res = await fetch(`${API_URL}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...(options?.headers || {}),
     },
     cache: 'no-store',
+    credentials: 'include',
   });
 
   const data = await res.json();
@@ -30,7 +26,6 @@ async function adminFetch<T>(path: string, options?: RequestInit): Promise<T> {
 
 export type LoginResponse = {
   data: {
-    token: string;
     user: {
       id: number;
       name: string;
@@ -96,6 +91,12 @@ export async function loginAdmin(email: string, password: string) {
   return adminFetch<LoginResponse>('/auth/login', {
     method: 'POST',
     body: JSON.stringify({ email, password }),
+  });
+}
+
+export async function logoutAdmin() {
+  return adminFetch<{ data: { message: string } }>('/auth/logout', {
+    method: 'POST',
   });
 }
 

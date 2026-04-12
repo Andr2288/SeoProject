@@ -3,6 +3,20 @@ const jwt = require('jsonwebtoken');
 const { supabase } = require('../lib/supabase');
 const { success, failure } = require('../utils/response');
 
+const AUTH_COOKIE_NAME = 'admin_token';
+
+function getCookieOptions() {
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: '/',
+  };
+}
+
 async function login(req, res) {
   try {
     const { email, password } = req.body;
@@ -41,8 +55,9 @@ async function login(req, res) {
       { expiresIn: '7d' }
     );
 
+    res.cookie(AUTH_COOKIE_NAME, token, getCookieOptions());
+
     return success(res, {
-      token,
       user: {
         id: user.id,
         name: user.name,
@@ -70,6 +85,7 @@ async function me(req, res) {
 }
 
 function logout(req, res) {
+  res.clearCookie(AUTH_COOKIE_NAME, getCookieOptions());
   return success(res, { message: 'Logged out' });
 }
 

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { getMe } from '@/lib/admin-api';
-import { removeToken } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 
 type Props = {
@@ -19,7 +18,6 @@ export default function AdminGuard({ children }: Props) {
         await getMe();
         setStatus('authorized');
       } catch {
-        removeToken();
         setStatus('unauthorized');
         router.replace('/admin/login');
       }

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { removeToken } from '@/lib/auth';
+import { logoutAdmin } from '@/lib/admin-api';
 
 type Props = {
   children: React.ReactNode;
@@ -12,9 +12,12 @@ export default function AdminShell({ children }: Props) {
   const pathname = usePathname();
   const router = useRouter();
 
-  function logout() {
-    removeToken();
-    router.push('/admin/login');
+  async function logout() {
+    try {
+      await logoutAdmin();
+    } finally {
+      router.push('/admin/login');
+    }
   }
 
   const linkClass = (href: string) =>

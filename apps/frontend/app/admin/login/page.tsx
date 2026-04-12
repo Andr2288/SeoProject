@@ -2,8 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import Container from '@/components/layout/container';
-import { loginAdmin } from '@/lib/admin-api';
-import { isAuthenticated, setToken } from '@/lib/auth';
+import { getMe, loginAdmin } from '@/lib/admin-api';
 import { useRouter } from 'next/navigation';
 
 export default function AdminLoginPage() {
@@ -15,9 +14,11 @@ export default function AdminLoginPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (isAuthenticated()) {
-      router.replace('/admin/articles');
-    }
+    getMe()
+      .then(() => {
+        router.replace('/admin/articles');
+      })
+      .catch(() => {});
   }, [router]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -26,8 +27,7 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      const res = await loginAdmin(email, password);
-      setToken(res.data.token);
+      await loginAdmin(email, password);
       router.push('/admin/articles');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed');
