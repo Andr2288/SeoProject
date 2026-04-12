@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const { authMiddleware } = require('../middleware/auth.middleware');
+const { requireTrustedAdminRequest } = require('../middleware/admin-request.middleware');
 const {
   listAdminArticles,
   getAdminMeta,
@@ -10,6 +11,7 @@ const {
 } = require('../controllers/admin.controller');
 
 router.use(authMiddleware);
+router.use(requireTrustedAdminRequest);
 
 router.get('/meta', getAdminMeta);
 
