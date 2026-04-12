@@ -1,42 +1,36 @@
 import type { MetadataRoute } from 'next';
+import type { ArticleCard, Author, Category, Tag } from '@/lib/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
-async function fetchArticles() {
-  const res = await fetch(`${API_URL}/articles?perPage=100`, {
+async function fetchData<T>(path: string): Promise<T[]> {
+  if (!API_URL) return [];
+
+  const res = await fetch(`${API_URL}${path}`, {
     next: { revalidate: 3600 },
   });
 
-  const data = await res.json();
-  return data.data || [];
+  if (!res.ok) return [];
+
+  const payload = await res.json() as { data?: T[] };
+  return payload.data || [];
+}
+
+async function fetchArticles() {
+  return fetchData<ArticleCard>('/articles?perPage=100');
 }
 
 async function fetchCategories() {
-  const res = await fetch(`${API_URL}/categories`, {
-    next: { revalidate: 3600 },
-  });
-
-  const data = await res.json();
-  return data.data || [];
+  return fetchData<Category>('/categories');
 }
 
 async function fetchTags() {
-  const res = await fetch(`${API_URL}/tags`, {
-    next: { revalidate: 3600 },
-  });
-
-  const data = await res.json();
-  return data.data || [];
+  return fetchData<Tag>('/tags');
 }
 
 async function fetchAuthors() {
-  const res = await fetch(`${API_URL}/authors`, {
-    next: { revalidate: 3600 },
-  });
-
-  const data = await res.json();
-  return data.data || [];
+  return fetchData<Author>('/authors');
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -56,7 +50,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   // articles
-  articles.forEach((article: any) => {
+  articles.forEach((article) => {
     routes.push({
       url: `${SITE_URL}/articles/${article.slug}`,
       lastModified: article.published_at
@@ -66,7 +60,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   // categories
-  categories.forEach((cat: any) => {
+  categories.forEach((cat) => {
     routes.push({
       url: `${SITE_URL}/categories/${cat.slug}`,
       lastModified: new Date(),
@@ -74,7 +68,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   // tags
-  tags.forEach((tag: any) => {
+  tags.forEach((tag) => {
     routes.push({
       url: `${SITE_URL}/tags/${tag.slug}`,
       lastModified: new Date(),
@@ -82,7 +76,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   });
 
   // authors
-  authors.forEach((author: any) => {
+  authors.forEach((author) => {
     routes.push({
       url: `${SITE_URL}/authors/${author.slug}`,
       lastModified: new Date(),

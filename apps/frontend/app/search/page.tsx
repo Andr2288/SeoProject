@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { searchArticles } from '@/lib/api';
 import { ArticleCard as ArticleCardType } from '@/lib/types';
 import Container from '@/components/layout/container';
 import ArticleList from '@/components/article/article-list';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function SearchPage() {
+function SearchPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -110,5 +110,23 @@ export default function SearchPage() {
         )}
       </Container>
     </main>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="py-10">
+          <Container>
+            <div className="rounded-2xl border bg-white p-8 text-center text-gray-500">
+              Завантаження...
+            </div>
+          </Container>
+        </main>
+      }
+    >
+      <SearchPageContent />
+    </Suspense>
   );
 }

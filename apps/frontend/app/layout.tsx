@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
   ),
   title: 'IT Blog MVP',
-  description: 'Навчальний IT-блог на Next.js 14, Express і Supabase.',
+  description: 'Навчальний IT-блог на Next.js 16, Express і Supabase.',
   openGraph: {
     type: 'website',
     siteName: 'IT Blog MVP',

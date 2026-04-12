@@ -1,5 +1,30 @@
 const { supabase } = require('../lib/supabase');
+const sanitizeHtml = require('sanitize-html');
 const { success, failure } = require('../utils/response');
+
+function sanitizeText(value) {
+  const cleaned = sanitizeHtml(String(value || ''), {
+    allowedTags: [],
+    allowedAttributes: {},
+  }).trim();
+
+  return cleaned || null;
+}
+
+function sanitizeArticleHtml(value) {
+  return sanitizeHtml(String(value || ''), {
+    allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'h1', 'h2']),
+    allowedAttributes: {
+      a: ['href', 'name', 'target', 'rel'],
+      img: ['src', 'alt', 'title', 'width', 'height', 'loading'],
+      '*': ['class'],
+    },
+    allowedSchemes: ['http', 'https', 'mailto'],
+    allowedSchemesByTag: {
+      img: ['http', 'https'],
+    },
+  }).trim();
+}
 
 async function listAdminArticles(req, res) {
   try {
@@ -128,23 +153,32 @@ async function createAdminArticle(req, res) {
     }
 
     const normalizedStatus = status === 'published' ? 'published' : 'draft';
+    const cleanedContent = sanitizeArticleHtml(content);
+
+    if (!cleanedContent) {
+      return failure(res, 400, 'VALIDATION_ERROR', 'content cannot be empty after sanitization');
+    }
 
     const payload = {
-      title,
-      slug,
-      excerpt: excerpt || null,
-      content,
-      cover_url: cover_url || null,
+      title: sanitizeText(title),
+      slug: sanitizeText(slug),
+      excerpt: sanitizeText(excerpt),
+      content: cleanedContent,
+      cover_url: sanitizeText(cover_url),
       author_id: author_id || null,
       category_id: category_id || null,
       status: normalizedStatus,
-      meta_title: meta_title || null,
-      meta_description: meta_description || null,
+      meta_title: sanitizeText(meta_title),
+      meta_description: sanitizeText(meta_description),
       published_at:
         normalizedStatus === 'published'
           ? (published_at || new Date().toISOString())
           : null,
     };
+
+    if (!payload.title || !payload.slug) {
+      return failure(res, 400, 'VALIDATION_ERROR', 'title and slug are invalid');
+    }
 
     const { data: createdArticle, error } = await supabase
       .from('articles')
@@ -200,24 +234,33 @@ async function updateAdminArticle(req, res) {
     }
 
     const normalizedStatus = status === 'published' ? 'published' : 'draft';
+    const cleanedContent = sanitizeArticleHtml(content);
+
+    if (!cleanedContent) {
+      return failure(res, 400, 'VALIDATION_ERROR', 'content cannot be empty after sanitization');
+    }
 
     const payload = {
-      title,
-      slug,
-      excerpt: excerpt || null,
-      content,
-      cover_url: cover_url || null,
+      title: sanitizeText(title),
+      slug: sanitizeText(slug),
+      excerpt: sanitizeText(excerpt),
+      content: cleanedContent,
+      cover_url: sanitizeText(cover_url),
       author_id: author_id || null,
       category_id: category_id || null,
       status: normalizedStatus,
-      meta_title: meta_title || null,
-      meta_description: meta_description || null,
+      meta_title: sanitizeText(meta_title),
+      meta_description: sanitizeText(meta_description),
       published_at:
         normalizedStatus === 'published'
           ? (published_at || new Date().toISOString())
           : null,
       updated_at: new Date().toISOString(),
     };
+
+    if (!payload.title || !payload.slug) {
+      return failure(res, 400, 'VALIDATION_ERROR', 'title and slug are invalid');
+    }
 
     const { error } = await supabase
       .from('articles')

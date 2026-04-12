@@ -30,7 +30,7 @@ export default async function HomePage({ searchParams }: Props) {
         <section className="mb-8">
           <h1 className="mb-3 text-4xl font-bold">IT Blog MVP</h1>
           <p className="max-w-2xl text-gray-600">
-            Навчальний блог на Next.js 14, Express та Supabase. Публічні статті,
+            Навчальний блог на Next.js 16, Express та Supabase. Публічні статті,
             категорії, автори, теги та базове SEO.
           </p>
         </section>

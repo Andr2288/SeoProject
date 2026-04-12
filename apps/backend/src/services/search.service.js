@@ -1,6 +1,27 @@
 const { supabase } = require('../lib/supabase');
 
+function sanitizeSearchQuery(query) {
+  return String(query || '')
+    .replace(/[(),]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 async function searchArticles(query, { page = 1, perPage = 10 }) {
+  const safeQuery = sanitizeSearchQuery(query);
+
+  if (!safeQuery) {
+    return {
+      data: [],
+      meta: {
+        total: 0,
+        page,
+        perPage,
+        totalPages: 0,
+      },
+    };
+  }
+
   const from = (page - 1) * perPage;
   const to = from + perPage - 1;
 
@@ -17,7 +38,7 @@ async function searchArticles(query, { page = 1, perPage = 10 }) {
       category:categories(id, name, slug)
     `, { count: 'exact' })
     .eq('status', 'published')
-    .or(`title.ilike.%${query}%,excerpt.ilike.%${query}%,content.ilike.%${query}%`)
+    .or(`title.ilike.%${safeQuery}%,excerpt.ilike.%${safeQuery}%,content.ilike.%${safeQuery}%`)
     .order('published_at', { ascending: false })
     .range(from, to);
 

@@ -4,6 +4,7 @@ const { getCategories, getCategoryArticles } = require('../services/category.ser
 const { getTags, getTagArticles } = require('../services/tag.service');
 const { getAuthorBySlug, getAuthorArticles } = require('../services/author.service');
 const { searchArticles } = require('../services/search.service');
+const { supabase } = require('../lib/supabase');
 
 async function listArticles(req, res) {
   try {
@@ -196,5 +197,5 @@ module.exports = {
   getAuthor,
   authorArticles,
   search,
-    listAuthors
+  listAuthors,
 };
