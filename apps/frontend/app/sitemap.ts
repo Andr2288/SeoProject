@@ -49,6 +49,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(),
   });
 
+  routes.push({
+    url: `${SITE_URL}/about`,
+    lastModified: new Date(),
+  });
+
   // articles
   articles.forEach((article) => {
     routes.push({

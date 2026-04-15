@@ -69,9 +69,39 @@ export default async function AuthorPage({ params, searchParams }: Props) {
               </div>
             )}
 
-            <div>
+            <div className="min-w-0 flex-1">
               <p className="mb-2 text-sm text-gray-500">Автор</p>
               <h1 className="mb-2 text-3xl font-bold">{author.name}</h1>
+              <p className="mb-3 text-sm text-gray-500">
+                Опубліковано статей:{' '}
+                <span className="font-medium text-gray-800">
+                  {author.published_articles_count ?? meta.total}
+                </span>
+              </p>
+              {(author.linkedin_url || author.github_url) && (
+                <div className="mb-3 flex flex-wrap gap-3 text-sm">
+                  {author.linkedin_url ? (
+                    <a
+                      href={author.linkedin_url}
+                      className="font-medium text-blue-700 underline-offset-2 hover:underline"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      LinkedIn
+                    </a>
+                  ) : null}
+                  {author.github_url ? (
+                    <a
+                      href={author.github_url}
+                      className="font-medium text-blue-700 underline-offset-2 hover:underline"
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      GitHub
+                    </a>
+                  ) : null}
+                </div>
+              )}
               {author.bio && (
                 <p className="max-w-2xl text-gray-600">{author.bio}</p>
               )}

@@ -11,6 +11,9 @@ export type Author = {
   slug: string;
   bio?: string | null;
   avatar_url?: string | null;
+  linkedin_url?: string | null;
+  github_url?: string | null;
+  published_articles_count?: number;
 };
 
 export type Tag = {
@@ -39,6 +42,7 @@ export type Article = {
   content: string;
   cover_url?: string | null;
   published_at?: string | null;
+  updated_at?: string | null;
   views?: number;
   meta_title?: string | null;
   meta_description?: string | null;

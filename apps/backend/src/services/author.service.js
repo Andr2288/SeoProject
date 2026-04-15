@@ -3,7 +3,7 @@ const { supabase } = require('../lib/supabase');
 async function getAuthorBySlug(slug) {
   const { data, error } = await supabase
     .from('users')
-    .select('id, name, slug, bio, avatar_url')
+    .select('id, name, slug, bio, avatar_url, linkedin_url, github_url')
     .eq('slug', slug)
     .single();
 
@@ -37,7 +37,10 @@ async function getAuthorArticles(slug, { page = 1, perPage = 10 }) {
   if (error) throw error;
 
   return {
-    author,
+    author: {
+      ...author,
+      published_articles_count: count || 0,
+    },
     articles: data,
     meta: {
       total: count || 0,

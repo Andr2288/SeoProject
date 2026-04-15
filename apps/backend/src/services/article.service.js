@@ -69,11 +69,12 @@ async function getArticleBySlug(slug) {
       content,
       cover_url,
       published_at,
+      updated_at,
       views,
       meta_title,
       meta_description,
       category:categories(id, name, slug, description),
-      author:users(id, name, slug, bio, avatar_url),
+      author:users(id, name, slug, bio, avatar_url, linkedin_url, github_url),
       article_tags(
         tag:tags(id, name, slug)
       )

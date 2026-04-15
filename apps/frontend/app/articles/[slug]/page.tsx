@@ -6,6 +6,7 @@ import Container from '@/components/layout/container';
 import Image from 'next/image';
 import Link from 'next/link';
 import ArticleList from '@/components/article/article-list';
+import ArticleAuthor from '@/components/article/article-author';
 import ViewCounter from '@/components/article/view-counter';
 
 type Props = {
@@ -89,15 +90,6 @@ export default async function ArticlePage({ params }: Props) {
                 </Link>
               )}
 
-              {article.author?.slug && (
-                <Link
-                  href={`/authors/${article.author.slug}`}
-                  className="rounded-full bg-gray-100 px-3 py-1 hover:bg-gray-200"
-                >
-                  {article.author.name}
-                </Link>
-              )}
-
               <span>{formatDate(article.published_at)}</span>
               <span>{article.views || 0} переглядів</span>
             </div>
@@ -128,6 +120,14 @@ export default async function ArticlePage({ params }: Props) {
               className="prose prose-gray max-w-none"
               dangerouslySetInnerHTML={{ __html: article.content }}
             />
+
+            {article.author?.slug ? (
+              <ArticleAuthor
+                author={article.author}
+                publishedAt={article.published_at}
+                updatedAt={article.updated_at}
+              />
+            ) : null}
           </div>
         </article>
 
