@@ -19,8 +19,10 @@ if (!API_URL) {
 
 async function fetchJson<T>(path: string, options?: RequestInit): Promise<T> {
   const isGet = !options?.method || options.method === 'GET';
+  const base = API_URL.replace(/\/$/, '');
+  const url = `${base}/api${path}`;
 
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -29,10 +31,19 @@ async function fetchJson<T>(path: string, options?: RequestInit): Promise<T> {
     ...(isGet ? { next: { revalidate: 60 } } : {}),
   });
 
-  const data = await res.json();
+  const contentType = res.headers.get('content-type') || '';
+  const raw = await res.text();
+
+  if (!contentType.includes('application/json')) {
+    throw new Error(
+      `Expected JSON from ${url}, got ${res.status} ${res.statusText}, content-type=${contentType}, body=${raw.slice(0, 200)}`
+    );
+  }
+
+  const data = JSON.parse(raw);
 
   if (!res.ok) {
-    throw new Error(data?.error?.message || 'Request failed');
+    throw new Error(data?.error?.message || `Request failed: ${res.status}`);
   }
 
   return data as T;
