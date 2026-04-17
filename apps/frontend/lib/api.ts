@@ -11,21 +11,27 @@ import {
   TagArticlesResponse,
 } from './types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+function getApiBase(): string {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
 
-if (!API_URL) {
-  throw new Error('NEXT_PUBLIC_API_URL is not defined');
+  if (!apiUrl) {
+    throw new Error('NEXT_PUBLIC_API_URL is not defined');
+  }
+
+  return apiUrl.replace(/\/$/, '');
 }
 
 async function fetchJson<T>(path: string, options?: RequestInit): Promise<T> {
   const isGet = !options?.method || options.method === 'GET';
-  const base = API_URL.replace(/\/$/, '');
-  const url = `${base}/api${path}`;
+  const base = getApiBase();
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const url = `${base}/api${normalizedPath}`;
 
   const res = await fetch(url, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      ...(options?.body ? { 'Content-Type': 'application/json' } : {}),
       ...(options?.headers || {}),
     },
     ...(isGet ? { next: { revalidate: 60 } } : {}),
@@ -34,19 +40,25 @@ async function fetchJson<T>(path: string, options?: RequestInit): Promise<T> {
   const contentType = res.headers.get('content-type') || '';
   const raw = await res.text();
 
-  if (!contentType.includes('application/json')) {
+  if (!res.ok) {
     throw new Error(
-      `Expected JSON from ${url}, got ${res.status} ${res.statusText}, content-type=${contentType}, body=${raw.slice(0, 200)}`
+      `Request failed: ${res.status} ${res.statusText}; url=${url}; content-type=${contentType}; body=${raw.slice(0, 300)}`
     );
   }
 
-  const data = JSON.parse(raw);
-
-  if (!res.ok) {
-    throw new Error(data?.error?.message || `Request failed: ${res.status}`);
+  if (!contentType.includes('application/json')) {
+    throw new Error(
+      `Expected JSON from ${url}, got ${contentType}; body=${raw.slice(0, 300)}`
+    );
   }
 
-  return data as T;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    throw new Error(
+      `Invalid JSON from ${url}; content-type=${contentType}; body=${raw.slice(0, 300)}`
+    );
+  }
 }
 
 export async function getArticles(params?: {
