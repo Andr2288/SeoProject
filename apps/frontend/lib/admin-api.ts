@@ -1,11 +1,11 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL?.trim();
+function getAdminApiBase(): string {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
 
-if (!API_URL) {
-  throw new Error('NEXT_PUBLIC_API_URL is not defined');
-}
+  if (!apiUrl) {
+    throw new Error('NEXT_PUBLIC_API_URL is not defined');
+  }
 
-function getAdminApiBase() {
-  return API_URL.replace(/\/$/, '');
+  return apiUrl.replace(/\/$/, '');
 }
 
 async function adminFetch<T>(path: string, options?: RequestInit): Promise<T> {
@@ -48,7 +48,6 @@ async function adminFetch<T>(path: string, options?: RequestInit): Promise<T> {
     );
   }
 }
-
 export type LoginResponse = {
   data: {
     user: {
