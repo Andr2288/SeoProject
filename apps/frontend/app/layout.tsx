@@ -15,6 +15,9 @@ export const metadata: Metadata = {
     title: 'IT Blog MVP',
     description: 'Навчальний IT-блог',
   },
+  verification: {
+    google: 'RZZ9pZAXDBAZ1_jsKUflQpqmUVjFJ2aEN49D1MaKnLg',
+  },
 };
 
 export default function RootLayout({
