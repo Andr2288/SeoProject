@@ -1,28 +1,52 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL?.trim();
 
 if (!API_URL) {
   throw new Error('NEXT_PUBLIC_API_URL is not defined');
 }
 
+function getAdminApiBase() {
+  return API_URL.replace(/\/$/, '');
+}
+
 async function adminFetch<T>(path: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(`${API_URL}${path}`, {
+  const base = getAdminApiBase();
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const url = `${base}/api${normalizedPath}`;
+
+  const res = await fetch(url, {
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      Accept: 'application/json',
       'x-admin-request': '1',
+      ...(options?.body ? { 'Content-Type': 'application/json' } : {}),
       ...(options?.headers || {}),
     },
     cache: 'no-store',
     credentials: 'include',
   });
 
-  const data = await res.json();
+  const contentType = res.headers.get('content-type') || '';
+  const raw = await res.text();
 
   if (!res.ok) {
-    throw new Error(data?.error?.message || 'Request failed');
+    throw new Error(
+      `Request failed: ${res.status} ${res.statusText}; url=${url}; content-type=${contentType}; body=${raw.slice(0, 300)}`
+    );
   }
 
-  return data as T;
+  if (!contentType.includes('application/json')) {
+    throw new Error(
+      `Expected JSON from ${url}, got ${contentType}; body=${raw.slice(0, 300)}`
+    );
+  }
+
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    throw new Error(
+      `Invalid JSON from ${url}; content-type=${contentType}; body=${raw.slice(0, 300)}`
+    );
+  }
 }
 
 export type LoginResponse = {
@@ -105,7 +129,10 @@ export async function getMe() {
   return adminFetch<MeResponse>('/auth/me');
 }
 
-export async function getAdminArticles(params?: { page?: number; perPage?: number }) {
+export async function getAdminArticles(params?: {
+  page?: number;
+  perPage?: number;
+}) {
   const search = new URLSearchParams();
 
   if (params?.page) search.set('page', String(params.page));
@@ -150,14 +177,20 @@ export async function createAdminArticle(payload: AdminArticlePayload) {
 }
 
 export async function updateAdminArticle(id: number, payload: AdminArticlePayload) {
-  return adminFetch<{ data: { id: number; message: string } }>(`/admin/articles/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(payload),
-  });
+  return adminFetch<{ data: { id: number; message: string } }>(
+    `/admin/articles/${id}`,
+    {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    }
+  );
 }
 
 export async function deleteAdminArticle(id: number) {
-  return adminFetch<{ data: { id: number; message: string } }>(`/admin/articles/${id}`, {
-    method: 'DELETE',
-  });
+  return adminFetch<{ data: { id: number; message: string } }>(
+    `/admin/articles/${id}`,
+    {
+      method: 'DELETE',
+    }
+  );
 }
