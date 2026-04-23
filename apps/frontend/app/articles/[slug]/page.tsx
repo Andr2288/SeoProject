@@ -8,12 +8,123 @@ import Link from 'next/link';
 import ArticleList from '@/components/article/article-list';
 import ArticleAuthor from '@/components/article/article-author';
 import ViewCounter from '@/components/article/view-counter';
+import JsonLd from '@/components/seo/json-ld';
 
 type Props = {
   params: Promise<{
     slug: string;
   }>;
 };
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
+function absoluteAssetUrl(url: string | null | undefined, origin: string): string | undefined {
+  if (!url?.trim()) return undefined;
+  if (/^https?:\/\//i.test(url)) return url;
+  const base = origin.replace(/\/$/, '');
+  return `${base}/${url.replace(/^\//, '')}`;
+}
+
+function isoOrUndefined(value: string | null | undefined): string | undefined {
+  if (!value) return undefined;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? undefined : d.toISOString();
+}
+
+function buildArticleJsonLd(article: {
+  id: number;
+  title: string;
+  slug: string;
+  excerpt?: string | null;
+  meta_description?: string | null;
+  cover_url?: string | null;
+  published_at?: string | null;
+  updated_at?: string | null;
+  category?: { name: string; slug: string } | null;
+  author?: { name: string; slug: string } | null;
+}) {
+  const origin = siteUrl.replace(/\/$/, '');
+  const pageUrl = `${origin}/articles/${article.slug}`;
+  const description =
+    article.meta_description?.trim() ||
+    article.excerpt?.trim() ||
+    'Стаття блогу IT Blog MVP українською.';
+
+  const imageUrl = absoluteAssetUrl(article.cover_url, origin);
+  const datePublished = isoOrUndefined(article.published_at);
+  const dateModified = isoOrUndefined(article.updated_at) || datePublished;
+
+  const graph: Record<string, unknown>[] = [
+    {
+      '@type': 'Organization',
+      '@id': `${origin}/#organization`,
+      name: 'IT Blog MVP',
+      url: `${origin}/`,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${origin}/window.svg`,
+      },
+    },
+    {
+      '@type': 'Article',
+      '@id': `${pageUrl}#article`,
+      headline: article.title,
+      description,
+      url: pageUrl,
+      inLanguage: 'uk-UA',
+      isPartOf: { '@id': `${origin}/#website` },
+      author: article.author
+        ? {
+            '@type': 'Person',
+            name: article.author.name,
+            url: `${origin}/authors/${article.author.slug}`,
+          }
+        : { '@type': 'Organization', name: 'IT Blog MVP' },
+      publisher: { '@id': `${origin}/#organization` },
+      ...(datePublished ? { datePublished } : {}),
+      ...(dateModified ? { dateModified } : {}),
+      ...(imageUrl
+        ? {
+            image: {
+              '@type': 'ImageObject',
+              url: imageUrl,
+            },
+          }
+        : {}),
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${origin}/#website`,
+      url: `${origin}/`,
+      name: 'IT Blog MVP',
+      publisher: { '@id': `${origin}/#organization` },
+    },
+  ];
+
+  const crumbs: { name: string; item: string }[] = [
+    { name: 'Головна', item: `${origin}/` },
+  ];
+  if (article.category?.slug) {
+    crumbs.push({
+      name: article.category.name,
+      item: `${origin}/categories/${article.category.slug}`,
+    });
+  }
+  crumbs.push({ name: article.title, item: pageUrl });
+
+  graph.push({
+    '@type': 'BreadcrumbList',
+    '@id': `${pageUrl}#breadcrumb`,
+    itemListElement: crumbs.map((c, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: c.name,
+      item: c.item,
+    })),
+  });
+
+  return { '@context': 'https://schema.org', '@graph': graph };
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -60,8 +171,11 @@ export default async function ArticlePage({ params }: Props) {
     notFound();
   }
 
+  const articleJsonLd = buildArticleJsonLd(article);
+
   return (
     <main className="py-10">
+      <JsonLd data={articleJsonLd} />
       <Container className="max-w-4xl">
         <ViewCounter articleId={article.id} />
 
