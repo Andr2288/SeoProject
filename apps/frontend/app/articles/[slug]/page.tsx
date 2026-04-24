@@ -6,6 +6,7 @@ import Container from '@/components/layout/container';
 import Image from 'next/image';
 import Link from 'next/link';
 import ArticleList from '@/components/article/article-list';
+import ArticleBreadcrumbs from '@/components/article/article-breadcrumbs';
 import ArticleAuthor from '@/components/article/article-author';
 import ViewCounter from '@/components/article/view-counter';
 import JsonLd from '@/components/seo/json-ld';
@@ -194,6 +195,11 @@ export default async function ArticlePage({ params }: Props) {
           )}
 
           <div className="p-6 md:p-10">
+            <ArticleBreadcrumbs
+              category={article.category}
+              articleTitle={article.title}
+            />
+
             <div className="mb-4 flex flex-wrap gap-2 text-sm text-gray-500">
               {article.category?.slug && (
                 <Link

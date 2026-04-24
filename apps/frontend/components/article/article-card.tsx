@@ -55,7 +55,7 @@ export default function ArticleCard({ article }: Props) {
           )}
 
           <span className="text-sm font-medium text-black underline-offset-4 hover:underline">
-            Читати далі →
+            Читати матеріал: «{article.title}»
           </span>
         </div>
       </article>

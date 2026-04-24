@@ -51,6 +51,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
   const { category, articles } = result.data;
   const meta = result.meta;
+  const totalPages = Math.max(meta.totalPages, 1);
 
   return (
     <main className="py-10">
@@ -71,12 +72,12 @@ export default async function CategoryPage({ params, searchParams }: Props) {
               href={`/categories/${slug}?page=${page - 1}`}
               className="rounded-xl border bg-white px-4 py-2 text-sm"
             >
-              ← Назад
+              Попередня сторінка «{category.name}» ({page - 1} з {totalPages})
             </Link>
           )}
 
           <span className="text-sm text-gray-500">
-            Сторінка {meta.page} з {Math.max(meta.totalPages, 1)}
+            Сторінка {meta.page} з {totalPages}
           </span>
 
           {page < meta.totalPages && (
@@ -84,7 +85,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
               href={`/categories/${slug}?page=${page + 1}`}
               className="rounded-xl border bg-white px-4 py-2 text-sm"
             >
-              Далі →
+              Наступна сторінка «{category.name}» ({page + 1} з {totalPages})
             </Link>
           )}
         </section>

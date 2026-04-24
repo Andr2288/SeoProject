@@ -28,6 +28,15 @@ export default async function HomePage({ searchParams }: Props) {
   const categories =
     categoriesResult.status === 'fulfilled' ? categoriesResult.value.data : [];
 
+  const totalPages = Math.max(meta.totalPages, 1);
+  const homeHref = (targetPage: number) => {
+    const q = new URLSearchParams();
+    if (category) q.set('category', category);
+    if (targetPage > 1) q.set('page', String(targetPage));
+    const s = q.toString();
+    return s ? `/?${s}` : '/';
+  };
+
   return (
     <Container>
       <h1>IT Blog MVP</h1>
@@ -50,11 +59,19 @@ export default async function HomePage({ searchParams }: Props) {
       )}
 
       <div>
-        {page > 1 && <Link href={`/?page=${page - 1}`}>← Назад</Link>}
+        {page > 1 && (
+          <Link href={homeHref(page - 1)}>
+            Попередня сторінка списку ({page - 1} з {totalPages})
+          </Link>
+        )}
         <span>
-          Сторінка {meta.page} з {Math.max(meta.totalPages, 1)}
+          Сторінка {meta.page} з {totalPages}
         </span>
-        {page < meta.totalPages && <Link href={`/?page=${page + 1}`}>Далі →</Link>}
+        {page < meta.totalPages && (
+          <Link href={homeHref(page + 1)}>
+            Наступна сторінка списку ({page + 1} з {totalPages})
+          </Link>
+        )}
       </div>
     </Container>
   );

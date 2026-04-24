@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Container from './container';
+import SiteNav from './site-nav';
 
 export default function Header() {
   return (
@@ -9,12 +10,7 @@ export default function Header() {
           IT Blog MVP
         </Link>
 
-        <nav className="flex items-center gap-4 text-sm text-gray-600">
-          <Link href="/">Головна</Link>
-          <Link href="/about">Про нас</Link>
-          <Link href="/search">Пошук</Link>
-          <Link href="/admin/login">Адмінка</Link>
-        </nav>
+        <SiteNav />
       </Container>
     </header>
   );
