@@ -180,6 +180,10 @@ export default async function ArticlePage({ params }: Props) {
       <Container className="max-w-4xl">
         <ViewCounter articleId={article.id} />
 
+        <div className="mb-5 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-900/80">
+          <ArticleBreadcrumbs category={article.category} articleTitle={article.title} />
+        </div>
+
         <article className="overflow-hidden rounded-3xl border bg-white shadow-sm">
           {article.cover_url && (
             <div className="relative h-[320px] w-full">
@@ -195,11 +199,6 @@ export default async function ArticlePage({ params }: Props) {
           )}
 
           <div className="p-6 md:p-10">
-            <ArticleBreadcrumbs
-              category={article.category}
-              articleTitle={article.title}
-            />
-
             <div className="mb-4 flex flex-wrap gap-2 text-sm text-gray-500">
               {article.category?.slug && (
                 <Link
