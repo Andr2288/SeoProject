@@ -2,6 +2,13 @@ import Container from '@/components/layout/container';
 import ArticleList from '@/components/article/article-list';
 import { getArticles, getCategories } from '@/lib/api';
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: '/',
+  },
+};
 
 type Props = {
   searchParams?: Promise<{ page?: string; category?: string }>;

@@ -33,6 +33,14 @@ async function fetchAuthors() {
   return fetchData<Author>('/authors');
 }
 
+function normalizeBaseUrl(url: string): string {
+  return url.replace(/\/$/, '');
+}
+
+function hasValidSlug(value: string | null | undefined): value is string {
+  return Boolean(value && value.trim());
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [articles, categories, tags, authors] = await Promise.all([
     fetchArticles(),
@@ -42,50 +50,46 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]);
 
   const routes: MetadataRoute.Sitemap = [];
+  const seen = new Set<string>();
+  const base = normalizeBaseUrl(SITE_URL);
+
+  const pushRoute = (url: string, lastModified: Date) => {
+    // Keep sitemap canonical and duplicate-free.
+    if (seen.has(url)) return;
+    seen.add(url);
+    routes.push({ url, lastModified });
+  };
 
   // home
-  routes.push({
-    url: SITE_URL,
-    lastModified: new Date(),
-  });
+  pushRoute(base, new Date());
 
-  routes.push({
-    url: `${SITE_URL}/about`,
-    lastModified: new Date(),
-  });
+  pushRoute(`${base}/about`, new Date());
 
   // articles
   articles.forEach((article) => {
-    routes.push({
-      url: `${SITE_URL}/articles/${article.slug}`,
-      lastModified: article.published_at
-        ? new Date(article.published_at)
-        : new Date(),
-    });
+    if (!hasValidSlug(article.slug)) return;
+    pushRoute(
+      `${base}/articles/${article.slug}`,
+      article.published_at ? new Date(article.published_at) : new Date()
+    );
   });
 
   // categories
   categories.forEach((cat) => {
-    routes.push({
-      url: `${SITE_URL}/categories/${cat.slug}`,
-      lastModified: new Date(),
-    });
+    if (!hasValidSlug(cat.slug)) return;
+    pushRoute(`${base}/categories/${cat.slug}`, new Date());
   });
 
   // tags
   tags.forEach((tag) => {
-    routes.push({
-      url: `${SITE_URL}/tags/${tag.slug}`,
-      lastModified: new Date(),
-    });
+    if (!hasValidSlug(tag.slug)) return;
+    pushRoute(`${base}/tags/${tag.slug}`, new Date());
   });
 
   // authors
   authors.forEach((author) => {
-    routes.push({
-      url: `${SITE_URL}/authors/${author.slug}`,
-      lastModified: new Date(),
-    });
+    if (!hasValidSlug(author.slug)) return;
+    pushRoute(`${base}/authors/${author.slug}`, new Date());
   });
 
   return routes;
