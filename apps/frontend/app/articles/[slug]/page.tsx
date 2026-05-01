@@ -10,6 +10,7 @@ import ArticleBreadcrumbs from '@/components/article/article-breadcrumbs';
 import ArticleAuthor from '@/components/article/article-author';
 import ViewCounter from '@/components/article/view-counter';
 import JsonLd from '@/components/seo/json-ld';
+import ScrollDepthTracker from '@/components/analytics/scroll-depth-tracker';
 
 type Props = {
   params: Promise<{
@@ -177,6 +178,7 @@ export default async function ArticlePage({ params }: Props) {
   return (
     <main className="py-10">
       <JsonLd data={articleJsonLd} />
+      <ScrollDepthTracker pageType="article" pageSlug={article.slug} />
       <Container className="max-w-4xl">
         <ViewCounter articleId={article.id} />
 
@@ -252,7 +254,7 @@ export default async function ArticlePage({ params }: Props) {
 
         <section className="mt-10">
           <h2 className="mb-5 text-2xl font-bold">Схожі статті</h2>
-          <ArticleList articles={related} />
+          <ArticleList articles={related} trackingContext="related_articles" />
         </section>
       </Container>
     </main>

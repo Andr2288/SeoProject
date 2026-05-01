@@ -1,17 +1,29 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArticleCard as ArticleCardType } from '@/lib/types';
 import { formatDate } from '@/lib/utils';
+import { trackEvent } from '@/lib/analytics';
 
 type Props = {
   article: ArticleCardType;
+  trackingContext?: string;
 };
 
-export default function ArticleCard({ article }: Props) {
+export default function ArticleCard({ article, trackingContext = 'article_list' }: Props) {
   return (
     <Link
       href={`/articles/${article.slug}`}
       className="block overflow-hidden rounded-2xl border bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+      onClick={() => {
+        if (trackingContext !== 'related_articles') return;
+        trackEvent('click_related_article', {
+          article_id: article.id,
+          article_slug: article.slug,
+          source: trackingContext,
+        });
+      }}
     >
       <article>
         {article.cover_url && (
